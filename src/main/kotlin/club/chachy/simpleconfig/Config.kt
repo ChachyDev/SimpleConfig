@@ -1,14 +1,21 @@
 package club.chachy.simpleconfig
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.File
 import java.lang.reflect.Field
 
-private val gson = Gson()
+private val nonPrettyPrinted = Gson()
 
-class Config(private val file: File, private val `class`: Any) {
+private val prettyPrintedGson = GsonBuilder()
+    .setPrettyPrinting()
+    .create()
+
+class Config(private val file: File, private val `class`: Any, isPrettyPrinted: Boolean = true) {
+    private val gson: Gson = if (isPrettyPrinted) prettyPrintedGson else nonPrettyPrinted
+
     private var obj = JsonObject()
 
     private val configClass = `class`::class.java
