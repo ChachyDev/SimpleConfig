@@ -26,10 +26,13 @@ class Config(private val file: File, private val `class`: Any, isPrettyPrinted: 
         try {
             if (text.isNotEmpty()) {
                 obj = JsonParser.parseString(text).asJsonObject
-                configClass.declaredFields.filter { it.isAnnotationPresent(ConfigOption::class.java) }.forEach {
-                    if (obj.has(it.name)) {
-                        it.isAccessible = true
-                        it.set(`class`, gson.fromJson(obj.get(it.name), it.type))
+                for (i in configClass.declaredFields.size - 1 downTo 0) {
+                    val field = configClass.declaredFields[i]
+                    if (field.isAnnotationPresent(ConfigOption::class.java)) {
+                        if (obj.has(field.name)) {
+                            field.isAccessible = true
+                            field.set(`class`, gson.fromJson(obj.get(field.name), field.type))
+                        }
                     }
                 }
             }
@@ -39,8 +42,11 @@ class Config(private val file: File, private val `class`: Any, isPrettyPrinted: 
     }
 
     fun save() {
-        configClass.declaredFields.filter { it.isAnnotationPresent(ConfigOption::class.java) }.forEach {
-            save(it)
+        for (i in configClass.declaredFields.size - 1 downTo 0) {
+            val field = configClass.declaredFields[i]
+            if (field.isAnnotationPresent(ConfigOption::class.java)) {
+                save(field)
+            }
         }
         file.writeText(gson.toJson(obj))
     }
