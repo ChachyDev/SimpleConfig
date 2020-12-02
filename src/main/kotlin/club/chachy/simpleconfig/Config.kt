@@ -7,14 +7,8 @@ import com.google.gson.JsonParser
 import java.io.File
 import java.lang.reflect.Field
 
-private val nonPrettyPrinted = Gson()
-
-private val prettyPrintedGson = GsonBuilder()
-    .setPrettyPrinting()
-    .create()
-
 class Config(private val file: File, private val `class`: Any, isPrettyPrinted: Boolean = true) {
-    private val gson: Gson = if (isPrettyPrinted) prettyPrintedGson else nonPrettyPrinted
+    private val gson: Gson = if (isPrettyPrinted) Gson() else GsonBuilder().setPrettyPrinting().create()
 
     private var obj = JsonObject()
 
