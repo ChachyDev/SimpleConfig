@@ -10,6 +10,8 @@ import java.lang.reflect.Field
 class Config(private val file: File, private val `class`: Any, isPrettyPrinted: Boolean = true) {
     private val gson: Gson = if (isPrettyPrinted) Gson() else GsonBuilder().setPrettyPrinting().create()
 
+    private val parser = JsonParser()
+
     private var obj = JsonObject()
 
     private val configClass = `class`::class.java
@@ -19,7 +21,7 @@ class Config(private val file: File, private val `class`: Any, isPrettyPrinted: 
         val text = file.readText()
         try {
             if (text.isNotEmpty()) {
-                obj = JsonParser.parseString(text).asJsonObject
+                obj = parser.parse(text).asJsonObject
                 for (i in configClass.declaredFields.size - 1 downTo 0) {
                     val field = configClass.declaredFields[i]
                     if (field.isAnnotationPresent(ConfigOption::class.java)) {
