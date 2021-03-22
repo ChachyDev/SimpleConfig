@@ -16,8 +16,13 @@ class Config(private val file: File, private val `class`: Any, isPrettyPrinted: 
 
     private val configClass = `class`::class.java
 
+    private val fields = mutableListOf<Field>()
+
     fun load() {
-        if (!file.exists()) error("The file given does not exist.")
+        if (!file.exists()) {
+            file.createNewFile()
+            file.writeText(gson.toJson(obj))
+        }
         val text = file.readText()
         try {
             if (text.isNotEmpty()) {
@@ -28,6 +33,7 @@ class Config(private val file: File, private val `class`: Any, isPrettyPrinted: 
                         if (obj.has(field.name)) {
                             field.isAccessible = true
                             field.set(`class`, gson.fromJson(obj.get(field.name), field.type))
+                            fields.add(field)
                         }
                     }
                 }
@@ -37,12 +43,23 @@ class Config(private val file: File, private val `class`: Any, isPrettyPrinted: 
         }
     }
 
-    fun save() {
-        for (i in configClass.declaredFields.size - 1 downTo 0) {
-            val field = configClass.declaredFields[i]
-            if (field.isAnnotationPresent(ConfigOption::class.java)) {
-                save(field)
+    fun loadField(field: Field, checkAnnotation: Boolean = true) {
+        val passed = if (checkAnnotation) field.isAnnotationPresent(ConfigOption::class.java) else true
+        if (passed) {
+            if (obj.has(field.name)) {
+                field.isAccessible = true
+                field.set(`class`, gson.fromJson(obj.get(field.name), field.type))
+                fields.add(field)
             }
+        }
+    }
+
+    fun addField(field: Field) = loadField(field, false)
+
+    fun save() {
+        for (i in fields.size - 1 downTo 0) {
+            val field = fields[i]
+            save(field)
         }
         file.writeText(gson.toJson(obj))
     }
