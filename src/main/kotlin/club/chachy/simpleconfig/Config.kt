@@ -7,23 +7,27 @@ import com.google.gson.JsonParser
 import java.io.File
 import java.lang.reflect.Field
 
-class Config(private val file: File, private val `class`: Any, isPrettyPrinted: Boolean = true) {
-    private val gson: Gson = if (isPrettyPrinted) Gson() else GsonBuilder().setPrettyPrinting().create()
+class Config(
+    private val configFile: File,
+    private val `class`: Any,
+    gsonBlock: GsonBuilder.() -> Unit = { setPrettyPrinting() }
+) {
+    private val gson: Gson = GsonBuilder().apply(gsonBlock).create()
 
     private val parser = JsonParser()
 
     private var obj = JsonObject()
 
-    private val configClass = `class`::class.java
+    private val configClass = if (`class` is Class<*>) `class` else `class`::class.java
 
     private val fields = mutableListOf<Field>()
 
     fun load() {
-        if (!file.exists()) {
-            file.createNewFile()
-            file.writeText(gson.toJson(obj))
+        if (!configFile.exists()) {
+            configFile.createNewFile()
+            configFile.writeText(gson.toJson(obj))
         }
-        val text = file.readText()
+        val text = configFile.readText()
         try {
             if (text.isNotEmpty()) {
                 obj = parser.parse(text).asJsonObject
@@ -61,7 +65,7 @@ class Config(private val file: File, private val `class`: Any, isPrettyPrinted: 
             val field = fields[i]
             save(field)
         }
-        file.writeText(gson.toJson(obj))
+        configFile.writeText(gson.toJson(obj))
     }
 
 
