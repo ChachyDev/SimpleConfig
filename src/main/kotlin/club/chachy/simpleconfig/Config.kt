@@ -34,10 +34,10 @@ class Config(
                 for (i in configClass.declaredFields.size - 1 downTo 0) {
                     val field = configClass.declaredFields[i]
                     if (field.isAnnotationPresent(ConfigOption::class.java)) {
+                        field.isAccessible = true
+                        fields.add(field)
                         if (obj.has(field.name)) {
-                            field.isAccessible = true
                             field.set(`class`, gson.fromJson(obj.get(field.name), field.type))
-                            fields.add(field)
                         }
                     }
                 }
